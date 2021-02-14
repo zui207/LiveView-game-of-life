@@ -32,6 +32,7 @@ defmodule GameOfLifeWeb.GameLive do
     <%= for {{x, y}, %{cell: %{alive: alive}}} <- @game.board do %>
       <rect
         phx-click="point"
+        phx-value-x="<%= x %>" phx-value-y="<%= y %>"
         width="40" height="40"
         x="<%= (x-1)*40 %>" y="<%= (y-1)*40 %>"
         style="
@@ -59,8 +60,7 @@ defmodule GameOfLifeWeb.GameLive do
     end
   end
 
-  def set(%{assigns: %{game: %{board: board}=game}}=socket, x, y) do
-    point = {div(x, 40)+1, div(y, 40)+1}
+  def set(%{assigns: %{game: %{board: board}=game}}=socket, point) do
     status = Board.status(board, point)
     new_game = Game.set(game, [point], !status)
     assign(socket, game: new_game)
@@ -94,8 +94,9 @@ defmodule GameOfLifeWeb.GameLive do
     {:noreply, assign(socket, game: game)}
   end
 
-  def handle_event("point", %{"offsetX" => x, "offsetY" => y}, socket) do
-    {:noreply, set(socket, x, y)}
+  def handle_event("point", %{"x" => x, "y" => y}=params, socket) do
+    IO.inspect(params)
+    {:noreply, set(socket, {String.to_integer(x), String.to_integer(y)})}
   end
 
   def handle_info(:tick, %{assigns: %{status: :ok}}=socket) do
